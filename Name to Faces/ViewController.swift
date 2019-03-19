@@ -9,6 +9,8 @@
 import UIKit
 
 class ViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    // MARK: - Property
+    var people = [Person]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,6 +31,9 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         return cell
     }
     
+    
+    
+    // MARK: - Image Picker Delegate Methods
     @objc func addNewPerson() {
         let picker = UIImagePickerController()
         picker.allowsEditing = true
@@ -37,7 +42,6 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         present(picker, animated: true)
     }
     
-    // MARK: - Methods
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         guard let image = info[.editedImage] as? UIImage else { return }
         
@@ -48,8 +52,14 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
             try? jpegData.write(to: imagePath)
         }
         
+        let person = Person(name: "Unknown", image: imageName)
+        people.append(person)
+        collectionView.reloadData()
+        
         dismiss(animated: true)
     }
+    
+    // MARK: - Methodsb
     
     func getDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
