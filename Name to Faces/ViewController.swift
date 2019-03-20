@@ -81,18 +81,39 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let person = people[indexPath.item]
         
-        let ac = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
-        ac.addTextField()
-        
-        ac.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak ac] _ in
-            guard let newName = ac?.textFields?[0].text else { return }
+        if person.name == "Unknown" {
+            let namingAC = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
+            namingAC.addTextField()
             
-            person.name = newName
-            self?.collectionView.reloadData()
-        })
+            namingAC.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak namingAC] _ in
+                guard let newName = namingAC?.textFields?[0].text else { return }
+                
+                person.name = newName
+                self?.collectionView.reloadData()
+            })
+            
+            namingAC.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(namingAC, animated: true)
+        } else {
+            let editingAC = UIAlertController(title: "Edit person", message: "Perform your edits", preferredStyle: .alert)
+            editingAC.addTextField()
+            
+            editingAC.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self, weak editingAC] _ in
+                guard let editedName = editingAC?.textFields?[0].text else { return }
+                
+                person.name = editedName
+                self?.collectionView.reloadData()
+            })
+            
+            editingAC.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+                self?.people.remove(at: indexPath.item)
+                self?.collectionView.reloadData()
+            })
+            
+            present(editingAC, animated: true)
+        }
         
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(ac, animated: true)
+        
     }
 }
 
