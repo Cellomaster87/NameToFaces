@@ -55,8 +55,6 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         return cell
     }
     
-    
-    
     // MARK: - Image Picker Delegate Methods
     @objc func addNewPerson() {
         let picker = UIImagePickerController()
