@@ -28,6 +28,8 @@
 	<string>Let&apos;s take some pictures together!</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Let&apos;s record a video with some audio!</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We would like to access your biometric information to manage your people&apos;s pictures safety.</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

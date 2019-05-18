@@ -6,6 +6,7 @@
 //  Copyright © 2019 Michele Galvagno. All rights reserved.
 //
 
+import LocalAuthentication
 import UIKit
 
 class ViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -16,14 +17,12 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         super.viewDidLoad()
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Unlock", style: .plain, target: self, action: #selector(unlockCollection))
         
-        let defaults = UserDefaults.standard
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(lockCollection), name: UIApplication.willResignActiveNotification, object: nil)
         
-        if let savedPeople = defaults.object(forKey: "people") as? Data {
-            if let decodedPeople = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(savedPeople) as? [Person] {
-                people = decodedPeople 
-            }
-        }
+        navigationItem.leftBarButtonItem?.isEnabled = false
     }
     
     // MARK: - Collection View Data Source
@@ -136,6 +135,53 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
         if let savedData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: false) {
             let defaults = UserDefaults.standard
             defaults.set(savedData, forKey: "people")
+        }
+    }
+    
+    func loadImages() {
+        let defaults = UserDefaults.standard
+        
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            if let decodedPeople = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(savedPeople) as? [Person] {
+                people = decodedPeople
+                collectionView.reloadData()
+            }
+        }
+    }
+    
+    @objc func unlockCollection() {
+        let context = LAContext()
+        var error: NSError?
+        
+        // can we use biometric authentication or not?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "Identify yourself!"
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] (success, authenticationError) in
+                DispatchQueue.main.async {
+                    if success {
+                        self?.collectionView.isHidden = false
+                        self?.navigationItem.rightBarButtonItem?.isEnabled = false
+                        self?.navigationItem.leftBarButtonItem?.isEnabled = true
+                        
+                        // load images
+                        self?.loadImages()
+                    } else {
+                        let ac = UIAlertController(title: "Authentication failed", message: "You could not be verified; please try again.", preferredStyle: .alert)
+                        ac.addAction(UIAlertAction(title: "OK", style: .default))
+                        self?.present(ac, animated: true)
+                    }
+                }
+            }
+        }
+    }
+    
+    @objc func lockCollection() {
+        collectionView.isHidden = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+            self.navigationItem.leftBarButtonItem?.isEnabled = false
         }
     }
 }
